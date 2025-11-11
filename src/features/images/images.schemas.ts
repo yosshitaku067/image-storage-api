@@ -29,8 +29,6 @@ export const uploadImageSchema = z.object({
 		}),
 });
 
-export type UploadImageInput = z.infer<typeof uploadImageSchema>;
-
 /**
  * 画像レスポンス
  */
@@ -58,8 +56,6 @@ export const imageResponseSchema = z
 		}),
 	})
 	.openapi("Image");
-
-export type ImageResponse = z.infer<typeof imageResponseSchema>;
 
 /**
  * 画像一覧取得クエリ
@@ -93,8 +89,6 @@ export const listImagesQuerySchema = z.object({
 		}),
 });
 
-export type ListImagesQuery = z.infer<typeof listImagesQuerySchema>;
-
 /**
  * ページネーション情報
  */
@@ -117,8 +111,6 @@ export const paginationSchema = z.object({
 	}),
 });
 
-export type Pagination = z.infer<typeof paginationSchema>;
-
 /**
  * 画像一覧レスポンス
  */
@@ -132,8 +124,6 @@ export const listImagesResponseSchema = z
 		}),
 	})
 	.openapi("ImageList");
-
-export type ListImagesResponse = z.infer<typeof listImagesResponseSchema>;
 
 /**
  * エラーレスポンス
@@ -149,5 +139,3 @@ export const errorResponseSchema = z
 		}),
 	})
 	.openapi("Error");
-
-export type ErrorResponse = z.infer<typeof errorResponseSchema>;

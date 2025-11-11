@@ -1,7 +1,7 @@
 import { mkdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import imagesRoute from "../../src/routes/images";
+import imagesRoute from "../../src/features/images/images.routes";
 
 export const TEST_STORAGE_PATH = resolve(process.cwd(), "test-storage");
 

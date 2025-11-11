@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { fileExists } from "../../src/lib/storage";
-import type { ImageResponse } from "../../src/schemas/image";
+import { fileExists } from "../../../shared/storage/storage.service";
+import type { ImageResponse } from "../images.types";
 import {
 	createFormDataWithFile,
 	createTestApp,
 	createTestImageBuffer,
 	createTestJpegBuffer,
-} from "../helpers/test-utils";
+} from "../../../../tests/helpers/test-utils";
 
 describe("GET /api/images/{path} - 画像ファイル取得", () => {
 	const app = createTestApp();
