@@ -32,7 +32,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 
 			const data = (await res.json()) as ImageResponse;
 			uploadedPaths.push(data.path);
-			await new Promise((resolve) => setTimeout(resolve, 10));
+			await new Promise((resolve) => setTimeout(resolve, 50));
 		}
 
 		return uploadedPaths;

@@ -183,9 +183,12 @@ const getAllFilesRecursive = async (dir: string): Promise<FileInfo[]> => {
 export const listAllFiles = async (): Promise<FileInfo[]> => {
 	try {
 		const files = await getAllFilesRecursive(config.imageStoragePath);
-		return files.sort(
-			(a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime(),
-		);
+		return files.sort((a, b) => {
+			const timeDiff = b.updatedAt.getTime() - a.updatedAt.getTime();
+			if (timeDiff !== 0) return timeDiff;
+			// タイムスタンプが同じ場合はファイル名でソート（降順）
+			return b.path.localeCompare(a.path);
+		});
 	} catch (error) {
 		throw new StorageError(
 			"ファイル一覧の取得に失敗しました",
