@@ -1,8 +1,8 @@
 import { serve } from "@hono/node-server";
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { config } from "./config";
-import imagesRoute from "./routes/images";
+import { config } from "./shared/config/config";
+import imagesRoute from "./features/images/images.routes";
 
 const app = new OpenAPIHono();
 

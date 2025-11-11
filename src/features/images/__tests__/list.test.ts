@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import type {
 	ImageResponse,
 	ListImagesResponse,
-} from "../../src/schemas/image";
+} from "../images.types";
 import {
 	createFormDataWithFile,
 	createTestApp,
 	createTestImageBuffer,
-} from "../helpers/test-utils";
+} from "../../../../tests/helpers/test-utils";
 
 describe("GET /api/images - 画像一覧取得", () => {
 	const app = createTestApp();

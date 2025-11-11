@@ -7,17 +7,8 @@ import {
 	writeFile,
 } from "node:fs/promises";
 import { dirname, join, normalize, relative, resolve } from "node:path";
-import { config } from "../config";
-
-export class StorageError extends Error {
-	constructor(message: string, cause?: Error) {
-		super(message);
-		this.name = "StorageError";
-		if (cause) {
-			this.cause = cause;
-		}
-	}
-}
+import { config } from "../config/config";
+import { StorageError } from "./storage.error";
 
 /**
  * パスが安全かどうかを検証（ディレクトリトラバーサル攻撃の防止）
