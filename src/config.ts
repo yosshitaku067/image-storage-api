@@ -1,7 +1,10 @@
 import { resolve } from "node:path";
 import { config as dotenvConfig } from "dotenv";
 
-dotenvConfig();
+// テスト環境以外では.envファイルをロード
+if (process.env.NODE_ENV !== "test" && process.env.VITEST !== "true") {
+	dotenvConfig();
+}
 
 const getEnv = (key: string, defaultValue?: string): string => {
 	const value = process.env[key] ?? defaultValue;

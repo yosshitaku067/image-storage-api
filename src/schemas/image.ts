@@ -13,7 +13,10 @@ export const uploadImageSchema = z.object({
 			example: "user/123/profile.png",
 		}),
 	file: z
-		.instanceof(File)
+		.custom<File | Blob>(
+			(val) => val instanceof File || val instanceof Blob,
+			"ファイルが必要です",
+		)
 		.refine((file) => file.size > 0, "ファイルが空です")
 		.refine(
 			(file) => file.size <= 10 * 1024 * 1024,
