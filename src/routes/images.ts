@@ -1,9 +1,8 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import type { Image } from "@prisma/client";
-import { prisma } from "../lib/prisma";
 import {
 	deleteFile,
 	getMimeType,
+	listAllFiles,
 	readFileFromStorage,
 	StorageError,
 	saveFile,
@@ -16,23 +15,6 @@ import {
 } from "../schemas/image";
 
 const app = new OpenAPIHono();
-
-/**
- * Prisma ImageをImageResponseに変換
- */
-const toImageResponse = (image: Image) => ({
-	id: image.id,
-	filename: image.filename,
-	path: image.path,
-	size: image.size,
-	mimeType: image.mimeType,
-	width: image.width,
-	height: image.height,
-	tags: image.tags ? JSON.parse(image.tags) : null,
-	description: image.description,
-	uploadedAt: image.uploadedAt.toISOString(),
-	updatedAt: image.updatedAt.toISOString(),
-});
 
 /**
  * POST /images - 画像アップロード
@@ -74,8 +56,6 @@ app.openapi(uploadRoute, async (c) => {
 		const body = await c.req.parseBody();
 		const path = body.path as string;
 		const file = body.file as File;
-		const description = (body.description as string) ?? null;
-		const tagsString = body.tags as string | undefined;
 
 		if (!path || !file) {
 			return c.json({ error: "pathとfileは必須です" }, 400);
@@ -87,26 +67,19 @@ app.openapi(uploadRoute, async (c) => {
 
 		const fileBuffer = Buffer.from(await file.arrayBuffer());
 		const filename = path.split("/").pop() ?? "unknown";
-		const mimeType = getMimeType(filename);
 
 		const { size } = await saveFile(path, fileBuffer);
 
-		const tags = tagsString ? tagsString.split(",").map((t) => t.trim()) : null;
-
-		const image = await prisma.image.create({
-			data: {
-				filename,
+		return c.json(
+			{
 				path,
+				filename,
 				size,
-				mimeType,
-				width: null,
-				height: null,
-				tags: tags ? JSON.stringify(tags) : null,
-				description,
+				uploadedAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
 			},
-		});
-
-		return c.json(toImageResponse(image), 201);
+			201,
+		);
 	} catch (error) {
 		if (error instanceof StorageError) {
 			return c.json({ error: error.message }, 400);
@@ -157,23 +130,21 @@ app.openapi(listRoute, async (c) => {
 	try {
 		const { page, limit } = c.req.valid("query");
 
-		const skip = (page - 1) * limit;
-
-		const [images, total] = await Promise.all([
-			prisma.image.findMany({
-				skip,
-				take: limit,
-				orderBy: {
-					uploadedAt: "desc",
-				},
-			}),
-			prisma.image.count(),
-		]);
-
+		const allFiles = await listAllFiles();
+		const total = allFiles.length;
 		const totalPages = Math.ceil(total / limit);
 
+		const skip = (page - 1) * limit;
+		const paginatedFiles = allFiles.slice(skip, skip + limit);
+
 		return c.json({
-			images: images.map(toImageResponse),
+			images: paginatedFiles.map((file) => ({
+				path: file.path,
+				filename: file.filename,
+				size: file.size,
+				uploadedAt: file.uploadedAt.toISOString(),
+				updatedAt: file.updatedAt.toISOString(),
+			})),
 			pagination: {
 				total,
 				page,
@@ -194,24 +165,21 @@ app.openapi(listRoute, async (c) => {
 });
 
 /**
- * GET /images/:id - 画像ファイル取得
+ * GET /images/{path} - 画像ファイル取得（パスベース）
  */
 const getRoute = createRoute({
 	method: "get",
-	path: "/{id}",
+	path: "/{path}",
 	request: {
 		params: z.object({
-			id: z
-				.string()
-				.uuid()
-				.openapi({
-					description: "画像のID",
-					example: "550e8400-e29b-41d4-a716-446655440000",
-					param: {
-						name: "id",
-						in: "path",
-					},
-				}),
+			path: z.string().openapi({
+				description: "画像のパス",
+				example: "user/123/profile.png",
+				param: {
+					name: "path",
+					in: "path",
+				},
+			}),
 		}),
 	},
 	responses: {
@@ -248,22 +216,17 @@ const getRoute = createRoute({
 
 app.openapi(getRoute, async (c) => {
 	try {
-		const { id } = c.req.valid("param");
+		const { path } = c.req.valid("param");
+		const decodedPath = decodeURIComponent(path);
 
-		const image = await prisma.image.findUnique({
-			where: { id },
-		});
+		const fileBuffer = await readFileFromStorage(decodedPath);
+		const filename = decodedPath.split("/").pop() ?? "image";
+		const mimeType = getMimeType(filename);
 
-		if (!image) {
-			return c.json({ error: "画像が見つかりません" }, 404);
-		}
-
-		const fileBuffer = await readFileFromStorage(image.path);
-
-		return c.body(fileBuffer, 200, {
-			"Content-Type": image.mimeType,
-			"Content-Length": image.size.toString(),
-			"Content-Disposition": `inline; filename="${image.filename}"`,
+		return c.body(new Uint8Array(fileBuffer), 200, {
+			"Content-Type": mimeType,
+			"Content-Length": fileBuffer.length.toString(),
+			"Content-Disposition": `inline; filename="${filename}"`,
 		});
 	} catch (error) {
 		if (error instanceof StorageError) {
@@ -282,24 +245,21 @@ app.openapi(getRoute, async (c) => {
 });
 
 /**
- * DELETE /images/:id - 画像削除
+ * DELETE /images/{path} - 画像削除（パスベース）
  */
 const deleteRoute = createRoute({
 	method: "delete",
-	path: "/{id}",
+	path: "/{path}",
 	request: {
 		params: z.object({
-			id: z
-				.string()
-				.uuid()
-				.openapi({
-					description: "画像のID",
-					example: "550e8400-e29b-41d4-a716-446655440000",
-					param: {
-						name: "id",
-						in: "path",
-					},
-				}),
+			path: z.string().openapi({
+				description: "画像のパス",
+				example: "user/123/profile.png",
+				param: {
+					name: "path",
+					in: "path",
+				},
+			}),
 		}),
 	},
 	responses: {
@@ -328,24 +288,17 @@ const deleteRoute = createRoute({
 
 app.openapi(deleteRoute, async (c) => {
 	try {
-		const { id } = c.req.valid("param");
+		const { path } = c.req.valid("param");
+		const decodedPath = decodeURIComponent(path);
 
-		const image = await prisma.image.findUnique({
-			where: { id },
-		});
-
-		if (!image) {
-			return c.json({ error: "画像が見つかりません" }, 404);
-		}
-
-		await deleteFile(image.path);
-
-		await prisma.image.delete({
-			where: { id },
-		});
+		await deleteFile(decodedPath);
 
 		return c.body(null, 204);
 	} catch (error) {
+		if (error instanceof StorageError) {
+			return c.json({ error: "画像が見つかりません" }, 404);
+		}
+
 		console.error("Delete error:", error);
 		return c.json(
 			{

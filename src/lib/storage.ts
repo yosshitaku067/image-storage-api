@@ -1,5 +1,12 @@
-import { mkdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
-import { dirname, join, normalize, resolve } from "node:path";
+import {
+	mkdir,
+	readdir,
+	readFile,
+	stat,
+	unlink,
+	writeFile,
+} from "node:fs/promises";
+import { dirname, join, normalize, relative, resolve } from "node:path";
 import { config } from "../config";
 
 export class StorageError extends Error {
@@ -123,4 +130,66 @@ export const getMimeType = (filename: string): string => {
 	};
 
 	return mimeTypes[ext] ?? "application/octet-stream";
+};
+
+export type FileInfo = {
+	path: string;
+	filename: string;
+	size: number;
+	uploadedAt: Date;
+	updatedAt: Date;
+};
+
+/**
+ * ディレクトリ内のファイル一覧を再帰的に取得
+ */
+const getAllFilesRecursive = async (dir: string): Promise<FileInfo[]> => {
+	const files: FileInfo[] = [];
+
+	try {
+		const entries = await readdir(dir, { withFileTypes: true });
+
+		for (const entry of entries) {
+			const fullPath = join(dir, entry.name);
+
+			if (entry.isDirectory()) {
+				const subFiles = await getAllFilesRecursive(fullPath);
+				files.push(...subFiles);
+			} else if (entry.isFile()) {
+				const stats = await stat(fullPath);
+				const relativePath = relative(config.imageStoragePath, fullPath);
+
+				files.push({
+					path: relativePath,
+					filename: entry.name,
+					size: stats.size,
+					uploadedAt: stats.birthtime,
+					updatedAt: stats.mtime,
+				});
+			}
+		}
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+			throw error;
+		}
+	}
+
+	return files;
+};
+
+/**
+ * すべてのファイル一覧を取得
+ */
+export const listAllFiles = async (): Promise<FileInfo[]> => {
+	try {
+		const files = await getAllFilesRecursive(config.imageStoragePath);
+		return files.sort(
+			(a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime(),
+		);
+	} catch (error) {
+		throw new StorageError(
+			"ファイル一覧の取得に失敗しました",
+			error instanceof Error ? error : undefined,
+		);
+	}
 };

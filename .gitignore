@@ -38,3 +38,7 @@ openapi.yaml
 openapi.json
 
 *.db
+
+# test
+test-storage/
+coverage/

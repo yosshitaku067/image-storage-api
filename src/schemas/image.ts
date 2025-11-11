@@ -24,17 +24,6 @@ export const uploadImageSchema = z.object({
 			type: "string",
 			format: "binary",
 		}),
-	description: z.string().optional().openapi({
-		description: "画像の説明（オプション）",
-		example: "ユーザーのプロフィール画像",
-	}),
-	tags: z
-		.array(z.string())
-		.optional()
-		.openapi({
-			description: "画像のタグ（オプション）",
-			example: ["profile", "avatar"],
-		}),
 });
 
 export type UploadImageInput = z.infer<typeof uploadImageSchema>;
@@ -44,44 +33,17 @@ export type UploadImageInput = z.infer<typeof uploadImageSchema>;
  */
 export const imageResponseSchema = z
 	.object({
-		id: z.string().uuid().openapi({
-			description: "画像のID",
-			example: "550e8400-e29b-41d4-a716-446655440000",
+		path: z.string().openapi({
+			description: "ファイルパス",
+			example: "user/123/profile.png",
 		}),
 		filename: z.string().openapi({
 			description: "ファイル名",
 			example: "profile.png",
 		}),
-		path: z.string().openapi({
-			description: "ファイルパス",
-			example: "user/123/profile.png",
-		}),
 		size: z.number().int().positive().openapi({
 			description: "ファイルサイズ（バイト）",
 			example: 153600,
-		}),
-		mimeType: z.string().openapi({
-			description: "MIMEタイプ",
-			example: "image/png",
-		}),
-		width: z.number().int().positive().nullable().openapi({
-			description: "画像の幅（ピクセル）",
-			example: 800,
-		}),
-		height: z.number().int().positive().nullable().openapi({
-			description: "画像の高さ（ピクセル）",
-			example: 600,
-		}),
-		tags: z
-			.array(z.string())
-			.nullable()
-			.openapi({
-				description: "タグ",
-				example: ["profile", "avatar"],
-			}),
-		description: z.string().nullable().openapi({
-			description: "説明",
-			example: "ユーザーのプロフィール画像",
 		}),
 		uploadedAt: z.string().datetime().openapi({
 			description: "アップロード日時",

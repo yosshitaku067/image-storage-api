@@ -13,6 +13,5 @@ const getEnv = (key: string, defaultValue?: string): string => {
 
 export const config = {
 	port: Number.parseInt(getEnv("PORT", "3000"), 10),
-	databaseUrl: getEnv("DATABASE_URL"),
 	imageStoragePath: resolve(getEnv("IMAGE_STORAGE_PATH", "./uploads")),
 } as const;
