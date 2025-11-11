@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fileExists } from "../../src/lib/storage";
+import type { ImageResponse } from "../../src/schemas/image";
 import {
 	createFormDataWithFile,
 	createTestApp,
@@ -14,7 +15,7 @@ describe("GET /api/images/{path} - 画像ファイル取得", () => {
 		path: string,
 		filename: string,
 		buffer: Buffer,
-	) => {
+	): Promise<ImageResponse> => {
 		const formData = createFormDataWithFile(path, buffer, filename);
 
 		const res = await app.request("/api/images", {
@@ -22,7 +23,7 @@ describe("GET /api/images/{path} - 画像ファイル取得", () => {
 			body: formData,
 		});
 
-		return await res.json();
+		return (await res.json()) as ImageResponse;
 	};
 
 	it("正常に画像ファイルを取得できる", async () => {
@@ -93,7 +94,10 @@ describe("GET /api/images/{path} - 画像ファイル取得", () => {
 describe("DELETE /api/images/{path} - 画像削除", () => {
 	const app = createTestApp();
 
-	const uploadTestImage = async (path: string, filename: string) => {
+	const uploadTestImage = async (
+		path: string,
+		filename: string,
+	): Promise<ImageResponse> => {
 		const imageBuffer = createTestImageBuffer();
 		const formData = createFormDataWithFile(path, imageBuffer, filename);
 
@@ -102,7 +106,7 @@ describe("DELETE /api/images/{path} - 画像削除", () => {
 			body: formData,
 		});
 
-		return await res.json();
+		return (await res.json()) as ImageResponse;
 	};
 
 	it("正常に画像を削除できる", async () => {

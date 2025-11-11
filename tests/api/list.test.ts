@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type {
+	ImageResponse,
+	ListImagesResponse,
+} from "../../src/schemas/image";
 import {
 	createFormDataWithFile,
 	createTestApp,
@@ -26,7 +30,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 				body: formData,
 			});
 
-			const data = await res.json();
+			const data = (await res.json()) as ImageResponse;
 			uploadedPaths.push(data.path);
 			await new Promise((resolve) => setTimeout(resolve, 10));
 		}
@@ -39,7 +43,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 
 		expect(res.status).toBe(200);
 
-		const data = await res.json();
+		const data = (await res.json()) as ListImagesResponse;
 		expect(data.images).toEqual([]);
 		expect(data.pagination).toEqual({
 			total: 0,
@@ -56,7 +60,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 
 		expect(res.status).toBe(200);
 
-		const data = await res.json();
+		const data = (await res.json()) as ListImagesResponse;
 		expect(data.images).toHaveLength(5);
 		expect(data.pagination.total).toBe(5);
 		expect(data.pagination.page).toBe(1);
@@ -71,7 +75,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 
 		expect(res.status).toBe(200);
 
-		const data = await res.json();
+		const data = (await res.json()) as ListImagesResponse;
 		expect(data.images).toHaveLength(5);
 		expect(data.pagination.total).toBe(10);
 		expect(data.pagination.limit).toBe(5);
@@ -82,12 +86,12 @@ describe("GET /api/images - 画像一覧取得", () => {
 		await uploadTestImages(15);
 
 		const res1 = await app.request("/api/images?page=1&limit=10");
-		const data1 = await res1.json();
+		const data1 = (await res1.json()) as ListImagesResponse;
 		expect(data1.images).toHaveLength(10);
 		expect(data1.pagination.page).toBe(1);
 
 		const res2 = await app.request("/api/images?page=2&limit=10");
-		const data2 = await res2.json();
+		const data2 = (await res2.json()) as ListImagesResponse;
 		expect(data2.images).toHaveLength(5);
 		expect(data2.pagination.page).toBe(2);
 
@@ -115,7 +119,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 		const paths = await uploadTestImages(3);
 
 		const res = await app.request("/api/images");
-		const data = await res.json();
+		const data = (await res.json()) as ListImagesResponse;
 
 		expect(data.images[0].path).toBe(paths[2]);
 		expect(data.images[1].path).toBe(paths[1]);
@@ -141,7 +145,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 
 		expect(res.status).toBe(200);
 
-		const data = await res.json();
+		const data = (await res.json()) as ListImagesResponse;
 		expect(data.images).toEqual([]);
 		expect(data.pagination.total).toBe(5);
 		expect(data.pagination.page).toBe(10);
@@ -161,7 +165,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 		});
 
 		const res = await app.request("/api/images");
-		const data = await res.json();
+		const data = (await res.json()) as ListImagesResponse;
 
 		expect(data.images[0]).toHaveProperty("path");
 		expect(data.images[0]).toHaveProperty("filename");

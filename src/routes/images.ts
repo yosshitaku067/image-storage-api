@@ -12,6 +12,7 @@ import {
 	imageResponseSchema,
 	listImagesQuerySchema,
 	listImagesResponseSchema,
+	uploadImageSchema,
 } from "../schemas/image";
 
 const app = new OpenAPIHono();
@@ -54,16 +55,18 @@ const uploadRoute = createRoute({
 app.openapi(uploadRoute, async (c) => {
 	try {
 		const body = await c.req.parseBody();
-		const path = body.path as string;
-		const file = body.file as File;
 
-		if (!path || !file) {
-			return c.json({ error: "pathとfileは必須です" }, 400);
+		// Zodでバリデーション
+		const validationResult = uploadImageSchema.safeParse(body);
+
+		if (!validationResult.success) {
+			const errors = validationResult.error.issues
+				.map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+				.join(", ");
+			return c.json({ error: `バリデーションエラー: ${errors}` }, 400);
 		}
 
-		if (!(file instanceof File)) {
-			return c.json({ error: "fileは有効なファイルである必要があります" }, 400);
-		}
+		const { path, file } = validationResult.data;
 
 		const fileBuffer = Buffer.from(await file.arrayBuffer());
 		const filename = path.split("/").pop() ?? "unknown";
@@ -114,6 +117,14 @@ const listRoute = createRoute({
 			},
 			description: "画像一覧を取得しました",
 		},
+		400: {
+			content: {
+				"application/json": {
+					schema: errorResponseSchema,
+				},
+			},
+			description: "リクエストが不正です",
+		},
 		500: {
 			content: {
 				"application/json": {
@@ -137,21 +148,24 @@ app.openapi(listRoute, async (c) => {
 		const skip = (page - 1) * limit;
 		const paginatedFiles = allFiles.slice(skip, skip + limit);
 
-		return c.json({
-			images: paginatedFiles.map((file) => ({
-				path: file.path,
-				filename: file.filename,
-				size: file.size,
-				uploadedAt: file.uploadedAt.toISOString(),
-				updatedAt: file.updatedAt.toISOString(),
-			})),
-			pagination: {
-				total,
-				page,
-				limit,
-				totalPages,
+		return c.json(
+			{
+				images: paginatedFiles.map((file) => ({
+					path: file.path,
+					filename: file.filename,
+					size: file.size,
+					uploadedAt: file.uploadedAt.toISOString(),
+					updatedAt: file.updatedAt.toISOString(),
+				})),
+				pagination: {
+					total,
+					page,
+					limit,
+					totalPages,
+				},
 			},
-		});
+			200,
+		);
 	} catch (error) {
 		console.error("List error:", error);
 		return c.json(

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fileExists } from "../../src/lib/storage";
+import type { ImageResponse } from "../../src/schemas/image";
 import {
 	createFormDataWithFile,
 	createTestApp,
@@ -25,7 +26,7 @@ describe("POST /api/images - 画像アップロード", () => {
 
 		expect(res.status).toBe(201);
 
-		const data = await res.json();
+		const data = (await res.json()) as ImageResponse;
 		expect(data.filename).toBe("image.png");
 		expect(data.path).toBe("test/image.png");
 		expect(data.size).toBeGreaterThan(0);
@@ -51,7 +52,7 @@ describe("POST /api/images - 画像アップロード", () => {
 
 		expect(res.status).toBe(201);
 
-		const data = await res.json();
+		const data = (await res.json()) as ImageResponse;
 		expect(data.path).toBe("user/123/avatar/profile.jpg");
 		expect(data.filename).toBe("profile.jpg");
 
@@ -145,7 +146,7 @@ describe("POST /api/images - 画像アップロード", () => {
 			});
 
 			expect(res.status).toBe(201);
-			const data = await res.json();
+			const data = (await res.json()) as ImageResponse;
 			uploadedPaths.push(data.path);
 		}
 
