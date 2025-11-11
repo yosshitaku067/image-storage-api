@@ -23,6 +23,15 @@ const app = new OpenAPIHono();
 const uploadRoute = createRoute({
 	method: "post",
 	path: "/",
+	request: {
+		body: {
+			content: {
+				"multipart/form-data": {
+					schema: uploadImageSchema,
+				},
+			},
+		},
+	},
 	responses: {
 		201: {
 			content: {
