@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Image {
+  id          String   @id @default(uuid())
+  filename    String
+  path        String   @unique
+  size        Int
+  mimeType    String
+  width       Int?
+  height      Int?
+  tags        String?  // JSON string array
+  description String?
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([uploadedAt])
+  @@index([filename])
+}

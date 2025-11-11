@@ -1,0 +1,33 @@
+{
+	"name": "image-storage-api",
+	"type": "module",
+	"scripts": {
+		"dev": "tsx watch src/index.ts",
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"typecheck": "tsc --noEmit",
+		"check": "biome check",
+		"check:write": "biome check --write",
+		"prisma:generate": "prisma generate",
+		"db:push": "prisma db push",
+		"generate:openapi": "tsx src/scripts/generate-openapi.ts"
+	},
+	"dependencies": {
+		"@hono/node-server": "^1.19.6",
+		"@hono/swagger-ui": "^0.5.2",
+		"@hono/zod-openapi": "^1.1.4",
+		"@prisma/client": "^6.19.0",
+		"dotenv": "^17.2.3",
+		"hono": "^4.10.5",
+		"zod": "^4.1.12"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.5",
+		"@types/js-yaml": "^4.0.9",
+		"@types/node": "^20.11.17",
+		"js-yaml": "^4.1.0",
+		"prisma": "^6.19.0",
+		"tsx": "^4.7.1",
+		"typescript": "^5.8.3"
+	}
+}
