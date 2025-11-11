@@ -73,7 +73,7 @@ describe("GET /api/images/{path} - 画像ファイル取得", () => {
 		expect(data).toHaveProperty("error");
 	});
 
-	it.skip("取得した画像バイナリが元のデータと一致する", async () => {
+	it("取得した画像バイナリが元のデータと一致する", async () => {
 		const originalBuffer = createTestImageBuffer();
 		const timestamp = Date.now();
 		const uploaded = await uploadTestImage(

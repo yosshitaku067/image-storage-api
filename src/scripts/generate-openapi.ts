@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import yaml from "js-yaml";
-import imagesRoute from "../routes/images";
+import imagesRoute from "../features/images/images.routes";
 
 const generateOpenAPISpec = () => {
 	const app = new OpenAPIHono();

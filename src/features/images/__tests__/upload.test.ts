@@ -111,7 +111,7 @@ describe("POST /api/images - 画像アップロード", () => {
 		expect(data).toHaveProperty("error");
 	});
 
-	it.skip("複数の画像を順次アップロードできる", async () => {
+	it("複数の画像を順次アップロードできる", async () => {
 		const timestamp = Date.now();
 		const images = [
 			{
