@@ -53,7 +53,7 @@ describe("GET /api/images - 画像一覧取得", () => {
 		});
 	});
 
-	it.skip("デフォルトでページ1、1ページ20件で取得できる", async () => {
+	it("デフォルトでページ1、1ページ20件で取得できる", async () => {
 		await uploadTestImages(5);
 
 		const res = await app.request("/api/images");
