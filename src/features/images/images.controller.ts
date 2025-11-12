@@ -81,7 +81,6 @@ export const getImageHandler = async (c: Context) => {
 
 		return c.body(new Uint8Array(buffer), 200, {
 			"Content-Type": mimeType,
-			"Content-Length": buffer.length.toString(),
 			"Content-Disposition": `inline; filename="${filename}"`,
 		});
 	} catch (error) {
